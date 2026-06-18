@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Income 2026</title>
+    
+    <!-- ⚠️ এটি ফিক্সড বিজ্ঞপ্তির স্ক্রিপ্ট: এটি রিয়েল টাইমে বিজ্ঞাপন ট্রিগার করবে -->
+    <script src="https://sdk.start.io/active/js/startappjs.profile.js" async></script>
+    
+    <!-- ফায়ারবেস লাইব্রেরি সমূহ -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <style>
+        :root {
+            --primary-grad: linear-gradient(180deg, #ff6b3d 0%, #ff8e53 100%);
+            --bg-color: #fcefe9;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            color: #333;
+        }
+        .auth-container {
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 85vh;
+        }
+        .app-box {
+            background-color: white;
+            padding: 30px;
+            border-radius: 25px;
+            box-shadow: 0 10px 25px rgba(255, 107, 61, 0.15);
+            text-align: center;
+            width: 85%;
+            max-width: 360px;
+        }
+        h2 { color: #ff6b3d; margin-bottom: 5px; font-size: 28px; font-weight: bold; }
+        .subtitle { color: #777; font-size: 14px; margin-bottom: 25px; }
+        input, select {
+            width: 90%;
+            padding: 14px;
+            margin: 10px 0;
+            border: 1px solid #ffe0d3;
+            background-color: #fffbf9;
+            border-radius: 12px;
+            font-size: 15px;
+            outline: none;
+            transition: 0.3s;
+        }
+        input:focus { border-color: #ff6b3d; box-shadow: 0 0 5px rgba(255,107,61,0.2); }
+        .action-btn {
+            width: 98%;
+            background: var(--primary-grad);
+            color: white;
+            border: none;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            margin-top: 15px;
+            box-shadow: 0 5px 15px rgba(255, 107, 61, 0.3);
+        }
+        .toggle-link { margin-top: 20px; font-size: 14px; color: #666; }
+        .toggle-link span { color: #ff6b3d; cursor: pointer; font-weight: bold; text-decoration: underline; }
+
+        /* 🏠 প্রফেশনাল ড্যাশবোর্ড ডিজাইন */
+        .dashboard-container {
+            padding: 20px;
+            padding-bottom: 90px;
+        }
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .avatar {
+            width: 45px;
+            height: 45px;
+            background: var(--primary-grad);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .user-info h3 { margin: 0; font-size: 16px; color: #333; }
+        .user-info p { margin: 2px 0 0 0; font-size: 12px; color: #888; }
+        
+        .balance-card {
+            background: var(--primary-grad);
+            color: white;
+            padding: 25px;
+            border-radius: 24px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 20px rgba(255, 107, 61, 0.3);
+            text-align: center;
+        }
+        .balance-card h4 { margin: 0; font-size: 14px; opacity: 0.8; font-weight: 500; }
+        .balance-card h1 { margin: 8px 0; font-size: 34px; font-weight: bold; }
+        
+        .grid-tasks {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+        .task-box {
+            background: white;
+            padding: 15px 10px;
+            border-radius: 16px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+            border: 1px solid #fff0e9;
+        }
+        .task-box .icon { font-size: 24px; margin-bottom: 8px; }
+        .task-box p { margin: 0; font-size: 11px; font-weight: 600; color: #555; }
+
+        .section-title { font-size: 16px; font-weight: bold; margin-bottom: 15px; color: #444; text-align: left; }
+        
+        .list-card {
+            background: white;
+            padding: 15px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+            border: 1px solid #fff0e9;
+        }
+        .list-info { display: flex; align-items: center; gap: 12px; }
+        .list-icon { width: 40px; height: 40px; background: #fff0e9; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .list-text h4 { margin: 0; font-size: 14px; color: #333; }
+        .list-text p { margin: 3px 0 0 0; font-size: 11px; color: #aaa; }
+        .claim-btn { background: var(--primary-grad); color: white; border: none; padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; }
+
+        /* 📱 বটম বার */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            height: 65px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid #f5ebe6;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.03);
+            border-radius: 20px 20px 0 0;
+            z-index: 999;
+        }
+        .nav-item { text-align: center; color: #bbb; cursor: pointer; font-size: 11px; font-weight: 500; display: flex; flex-direction: column; align-items: center; }
+        .nav-item.active { color: #ff6b3d; }
+        .nav-item .nav-icon { font-size: 20px; margin-bottom: 2px; }
+    </style>
+</head>
+<body>
+
+    <div id="app-router">
+        <div class="auth-container">
+            <div class="app-box">
+                <h2>INCOME 2026</h2>
+                <div class="subtitle">আপনার অ্যাকাউন্টে লগইন করুন</div>
+                <input type="text" id="login-username" placeholder="আপনার ইউজারনেম দিন">
+                <input type="password" id="login-pass" placeholder="পাসওয়ার্ড দিন">
+                <button class="action-btn" onclick="checkLogin()">লগইন করুন</button>
+                <div class="toggle-link">অ্যাকাউন্ট নেই? <span onclick="showSignupPage()">নতুন অ্যাকাউন্ট খুলুন</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // আপনার ফায়ারবেস কনফিগ
+        const firebaseConfig = {
+            apiKey: "AIzaSyB7Cd84N2lxGoDGBE70-i9ae6RpvbLJdEc",
+            authDomain: "incomepro-136c3.firebaseapp.com",
+            databaseURL: "https://incomepro-136c3-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "incomepro-136c3",
+            storageBucket: "incomepro-136c3.firebasestorage.app",
+            messagingSenderId: "6315344063",
+            appId: "1:6315344063:web:5c030742d86b550bb5860a"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        let currentUsername = "";
+        let currentPoints = 0;
+        let router = document.getElementById("app-router");
+
+        // ✅ আপনার নিজের নতুন Start.io App ID সফলভাবে বসিয়ে দেওয়া হয়েছে
+        const STARTIO_APP_ID = "205867668"; 
+
+        function showSignupPage() {
+            router.innerHTML = `
+                <div class="auth-container">
+                    <div class="app-box">
+                        <h2>INCOME 2026</h2>
+                        <div class="subtitle">নতুন অ্যাকাউন্ট তৈরি করুন</div>
+                        <input type="text" id="sign-username" placeholder="ইউনিক ইউজারনেম (যেমন: rony12)">
+                        <input type="email" id="sign-email" placeholder="আপনার ইমেইল দিন">
+                        <input type="password" id="sign-pass" placeholder="নতুন পাসওয়ার্ড দিন">
+                        <button class="action-btn" onclick="completeSignup()">সাইন আপ করুন</button>
+                        <div class="toggle-link">অ্যাকাউন্ট আছে? <span onclick="window.location.reload()">লগইন করুন</span></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function completeSignup() {
+            let username = document.getElementById("sign-username").value.trim().toLowerCase();
+            let email = document.getElementById("sign-email").value;
+            let pass = document.getElementById("sign-pass").value;
+
+            if(username == "" || email == "" || pass == "") {
+                alert("দয়া করে সবগুলো বক্স পূরণ করুন!");
+                return;
+            }
+
+            database.ref('users/' + username).once('value', function(snapshot) {
+                if (snapshot.exists()) {
+                    alert("এই ইউজারনেমটি ইতিমধ্যে ব্যবহার করা হয়েছে!");
+                } else {
+                    database.ref('users/' + username).set({
+                        username: username,
+                        email: email,
+                        password: pass,
+                        points: 0
+                    }, function(error) {
+                        if (error) {
+                            alert("ডাটাবেস রুলস এরর!");
+                        } else {
+                            alert("অ্যাকাউন্ট তৈরি সফল হয়েছে!");
+                            currentUsername = username;
+                            currentPoints = 0;
+                            showDashboard();
+                        }
+                    });
+                }
+            });
+        }
+
+        function checkLogin() {
+            let username = document.getElementById("login-username").value.trim().toLowerCase();
+            let pass = document.getElementById("login-pass").value;
+            
+            if(username == "" || pass == "") {
+                alert("দয়া করে ইউজারনেম এবং পাসওয়ার্ড দুটিই লিখুন!");
+                return;
+            }
+
+            database.ref('users/' + username).once('value', function(snapshot) {
+                if (snapshot.exists()) {
+                    let userData = snapshot.val();
+                    if(userData.password === pass) {
+                        currentUsername = username;
+                        currentPoints = userData.points;
+                        alert("লগইন সফল হয়েছে!");
+                        showDashboard();
+                    } else {
+                        alert("ভুল পাসওয়ার্ড!");
+                    }
+                } else {
+                    alert("এই নামে কোনো অ্যাকাউন্ট নেই!");
+                }
+            });
+        }
+
+        function showDashboard() {
+            router.innerHTML = `
+                <div class="dashboard-container">
+                    <div class="profile-header">
+                        <div class="avatar">${currentUsername.substring(0,2).toUpperCase()}</div>
+                        <div class="user-info">
+                            <h3>Hi, ${currentUsername}!</h3>
+                            <p>Welcome Back 👋</p>
+                        </div>
+                    </div>
+
+                    <div class="balance-card">
+                        <h4>Current Balance</h4>
+                        <h1><span id="points">${currentPoints}</span> Pt</h1>
+                        <div style="background: rgba(255,255,255,0.2); padding: 8px 15px; border-radius: 30px; display: inline-block; font-size: 12px; font-weight: bold; cursor: pointer;" onclick="showWithdrawPage()">
+                            💼 My Wallet
+                        </div>
+                    </div>
+
+                    <div class="grid-tasks">
+                        <div class="task-box" onclick="alert('ডেইলি বোনাস সিস্টেম সক্রিয় হচ্ছে!')">
+                            <div class="icon">🎁</div>
+                            <p>Daily Check</p>
+                        </div>
+                        <div class="task-box" onclick="alert('স্পিন গেম শীঘ্রই যুক্ত হবে!')">
+                            <div class="icon">🎡</div>
+                            <p>Spin & Win</p>
+                        </div>
+                        <div class="task-box" onclick="alert('আপনার রেফার নাম: ' + currentUsername)">
+                            <div class="icon">👥</div>
+                            <p>Invite & Earn</p>
+                        </div>
+                    </div>
+
+                    <div class="section-title">More Tasks</div>
+
+                    <div class="list-card">
+                        <div class="list-info">
+                            <div class="list-icon">📹</div>
+                            <div class="list-text">
+                                <h4>Watch Video Ad</h4>
+                                <p>রিয়েল ভিডিও লোড হতে ৫ সেকেন্ড সময় লাগতে পারে</p>
+                            </div>
+                        </div>
+                        <button class="claim-btn" onclick="triggerRealStartioAd()">Watch</button>
+                    </div>
+                </div>
+
+                <div class="bottom-nav">
+                    <div class="nav-item active" onclick="showDashboard()">
+                        <div class="nav-icon">🏠</div><div>Home</div>
+                    </div>
+                    <div class="nav-item" onclick="showWithdrawPage()">
+                        <div class="nav-icon">💼</div><div>Wallet</div>
+                    </div>
+                    <div class="nav-item" onclick="window.location.reload()">
+                        <div class="nav-icon">🚪</div><div>Logout</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showWithdrawPage() {
+            router.innerHTML = `
+                <div class="dashboard-container" style="text-align:center;">
+                    <h2>টাকা তুলুন (Wallet)</h2>
+                    <p style="color:#666; margin-bottom: 20px;">আপনার বর্তমান ব্যালেন্স: <b>${currentPoints} Pt</b></p>
+                    
+                    <select id="withdraw-method">
+                        <option value="">টাকা নেওয়ার মাধ্যম বেছে নিন</option>
+                        <option value="বিকাশ">বিকাশ (bKash)</option>
+                        <option value="নগদ">নগদ (Nagad)</option>
+                        <option value="রিচার্জ">মোবাইল রিচার্জ</option>
+                    </select>
+                    
+                    <input type="number" id="withdraw-number" placeholder="আপনার একাউন্ট নম্বর দিন">
+                    <input type="number" id="withdraw-amount" placeholder="পয়েন্টের পরিমাণ (নূন্যতম ১০০০)">
+                    
+                    <button class="action-btn" onclick="submitWithdraw()">রিকোয়েস্ট পাঠান</button>
+                    <button class="action-btn" style="background: #ccc; color: #333; margin-top: 10px; box-shadow:none;" onclick="showDashboard()">ফিরে যান</button>
+                </div>
+            `;
+        }
+
+        function submitWithdraw() {
+            let method = document.getElementById("withdraw-method").value;
+            let number = document.getElementById("withdraw-number").value;
+            let amount = parseInt(document.getElementById("withdraw-amount").value);
+
+            if(method == "" || number == "" || isNaN(amount)) {
+                alert("সবগুলো বক্সে সঠিক তথ্য দিন!");
+                return;
+            }
+            if(amount > currentPoints) {
+                alert("আপনার অ্যাকাউন্টে পর্যাপ্ত পয়েন্ট নেই!");
+                return;
+            }
+            if(amount < 1000) {
+                alert("নূন্যতম ১০০০ পয়েন্ট উইথড্র করতে হবে!");
+                return;
+            }
+
+            currentPoints -= amount;
+            database.ref('users/' + currentUsername).update({ points: currentPoints });
+
+            let requestId = database.ref('withdraw_requests').push().key;
+            database.ref('withdraw_requests/' + requestId).set({
+                username: currentUsername,
+                method: method,
+                number: number,
+                points: amount,
+                status: "Pending"
+            }).then(() => {
+                alert("উইথড্র রিকোয়েস্ট সফল হয়েছে! আপনি এডমিন প্যানেল থেকে এই রিকোয়েস্ট দেখতে পাবেন।");
+                showDashboard();
+            });
+        }
+
+        // 📹 রিয়েল ভিডিও লোড এবং ভেরিফিকেশন মেকানিজম
+        function triggerRealStartioAd() {
+            if (typeof startappjs !== 'undefined') {
+                startappjs.init({
+                    appId: STARTIO_APP_ID,
+                    type: "rewarded", 
+                    onAdShow: function() {
+                        console.log("রিয়েল বিজ্ঞাপন সফলভাবে চালু হয়েছে।");
+                    },
+                    onAdVideoComplete: function() {
+                        // ইউজার ভিডিও পুরো শেষ করলেই কেবল এই ফাংশনটি রান হবে
+                        updatePointsInFirebase(10);
+                    },
+                    onAdFailed: function() {
+                        alert("এই মুহূর্তে কোনো রিয়েল ভিডিও বিজ্ঞাপন অ্যাভেলেবল নেই! ভিপিএন কানেক্ট করে ১ মিনিট পর চেষ্টা করুন।");
+                    }
+                });
+            } else {
+                alert("বিজ্ঞাপন স্ক্রিপ্ট এরর! লাইভ সার্ভার ছাড়া বিজ্ঞাপন রান হবে না।");
+            }
+        }
+
+        function updatePointsInFirebase(pts) {
+            currentPoints += pts;
+            database.ref('users/' + currentUsername).update({
+                points: currentPoints
+            }).then(() => {
+                let ptSpan = document.getElementById("points");
+                if(ptSpan) ptSpan.innerText = currentPoints;
+                alert("অভিনন্দন! আপনার দেখা ভিডিওটি থেকে আপনার মূল একাউন্টে ১০ পয়েন্ট যোগ করা হয়েছে।");
+            });
+        }
+    </script>
+
+</body>
+  </html>
